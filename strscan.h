@@ -1,6 +1,9 @@
 #ifndef STRSCAN_H
 #define STRSCAN_H
 
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
@@ -33,17 +36,13 @@ static inline void scn_set_pos(scn_scanner *sc, size_t pos);
 static inline void scn_forward(scn_scanner *sc, size_t len);
 static inline _Bool scn_atend(scn_scanner *sc);
 
-static inline _Bool scn_peek_chr(scn_scanner *sc, char *into);
-static inline _Bool scn_peek_str(scn_scanner *sc, size_t len,
-    const char **into);
-static inline _Bool scn_next_chr(scn_scanner *sc, char *into);
-static inline _Bool scn_next_str(scn_scanner *sc, size_t len,
-    const char **into);
-static inline _Bool scn_chrcmp(scn_scanner *sc, const char c1, const char c2);
+static inline const char *scn_curptr(scn_scanner *sc);
+static inline _Bool scn_peek(scn_scanner *sc, size_t i, char *into);
+static inline _Bool scn_next(scn_scanner *sc, char *into);
 
 /* forwards scan location if matched */
 static inline size_t scn_scan_chrset(scn_scanner *sc,
-    const char *chrset, char **into, size_t *into_len);
+    const char *chrset, const char **into);
 static inline _Bool scn_scan_str(scn_scanner *sc, const char *s,
     char **into, size_t *into_len);
 static inline _Bool scn_scan_strn(scn_scanner *sc, const char *s,
@@ -65,7 +64,7 @@ static inline _Bool scn_scan_spaces(scn_scanner *sc, const char *s,
 static inline _Bool scn_scan_hdr(scn_scanner *sc, const char *s,
     char **into, size_t *into_len);
 
-static inline size_t scn_scan_upto_chrset(scn_scanner *sc,
+static inline _Bool scn_scan_upto_chrset(scn_scanner *sc,
     const char *chrset, char **into, size_t *into_len);
 static inline _Bool scn_scan_upto_str(scn_scanner *sc,
     const char *s, char **into, size_t *into_len);
@@ -73,14 +72,14 @@ static inline _Bool scn_scan_upto_strn(scn_scanner *sc,
     const char *s, size_t len, char **into, size_t *into_len);
 
 /* keeps current scan location whether matched or not */
-static inline size_t scn_search_chrset(scn_scanner *sc,
+static inline _Bool scn_search_chrset(scn_scanner *sc,
     const char *chrset, char **into, size_t *into_len);
 static inline _Bool scn_search_str(scn_scanner *sc, const char *s,
     char **into, size_t *into_len);
 static inline _Bool scn_search_strn(scn_scanner *sc, const char *s,
     size_t len, char **into, size_t *into_len);
 
-static inline size_t scn_search_upto_chrset(scn_scanner *sc,
+static inline _Bool scn_search_upto_chrset(scn_scanner *sc,
     const char *chrset, char **into, size_t *into_len);
 static inline _Bool scn_search_upto_str(scn_scanner *sc,
     const char *s, char **into, size_t *into_len);
@@ -174,30 +173,25 @@ scn_atend(scn_scanner *sc)
   return sc->pos >= sc->len;
 }
 
-static inline _Bool
-scn_peek_chr(scn_scanner *sc, char *into)
+static inline const char *
+scn_curptr(scn_scanner *sc)
 {
-  if (sc->pos+1 < sc->len) {
+  return sc->s.cs + sc->pos;
+}
+
+static inline _Bool
+scn_peek(scn_scanner *sc, size_t i, char *into)
+{
+  if (sc->pos+i < sc->len) {
     if (into != NULL)
-      *into = sc->s.cs[sc->pos+1];
+      *into = sc->s.cs[sc->pos+i];
     return true;
   } else
     return false;
 }
 
 static inline _Bool
-scn_peek_str(scn_scanner *sc, size_t len, const char **into)
-{
-  if (sc->pos+len < sc->len) {
-    if (into != NULL)
-      *into = sc->s.cs + sc->pos;
-    return true;
-  } else
-    return false;
-}
-
-static inline _Bool
-scn_next_chr(scn_scanner *sc, char *into)
+scn_next(scn_scanner *sc, char *into)
 {
   if (sc->pos < sc->len) {
     if (into != NULL)
@@ -207,66 +201,38 @@ scn_next_chr(scn_scanner *sc, char *into)
     return false;
 }
 
-static inline _Bool
-scn_next_str(scn_scanner *sc, size_t len, const char **into)
+static inline size_t
+scn_scan_chrset(scn_scanner *sc, const char *chrset, const char **into)
 {
-  if (sc->pos+len < sc->len) {
-    if (into != NULL)
-      *into = sc->s.cs + sc->pos;
-    sc->pos += len;
-    return true;
-  } else
-    return false;
-}
-
-static inline _Bool
-scn_chrcmp(scn_scanner *sc, const char c1, const char c2)
-{
-  switch (c1) {
-  case "\1":
-    break;
-  }
-  return c1 == c2 ||
-    (!sc->s.cs && (('a' <= c1 && c1 <= 'z' && c1 - 32 == c2) ||
-                 ('A' <= c1 && c1 <= 'Z' && c1 + 32 == c2)));
-}
-
-static inline _Bool
-scn_scan_chrset(scn_scanner *sc, const char *chrset, char **into, size_t *into_len)
-{
-  size_t start, len;
+  size_t rest, i;
   char c;
   const char *t;
 
-  start = sc->pos;
-  while (scn_next(sc, &c)) {
-    t = chrset;
-    while (*t != '\0') {
-      if (!scn_chrcmp(sc, c, *t)) {
-        sc->pos--;
+  if (!scn_atend(sc)) {
+    rest = sc->len - sc->pos;
+    for (i = 0; i < rest; i++) {
+      if (scn_peek(sc, i, &c)) {
+        t = chrset;
+        while (*t != '\0' && *t != c)
+          t++;
+        if (*t == '\0')
+          break;
+      } else
         break;
-      }
-      t++;
     }
-    if (*t != '\0')
-      goto not_match;
-  }
 
-  if (sc->pos > start) {
-    len = sc->pos - start;
-    if (into != NULL) {
-      *into = (char *)SCN_MALLOC(len+1);
-      strncpy(*into, sc->s.cs+start, len);
-      (*into, size_t *into_len)[len] = '\0';
-    }
-    return true;
-  }
-
-not_match:
-  sc->pos = start;
-  return false;
+    if (i > 0) {
+      if (into != NULL)
+        *into = sc->s.cs + sc->pos;
+      sc->pos += i;
+      return i;
+    } else
+      return 0;
+  } else
+    return 0;
 }
 
+/*
 static inline _Bool
 scn_scan_str(scn_scanner *sc, const char *s, char **into, size_t *into_len)
 {
@@ -419,6 +385,8 @@ scn_skip(scn_scanner *sc)
     }
   }
 }
+
+*/
 
 #endif /* STRSCAN_H */
 

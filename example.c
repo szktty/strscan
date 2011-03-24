@@ -49,8 +49,16 @@ main(int argc, char **argv)
   printf("lowcase chrset -> %s (%lu)\n", buf, buflen);
   if (scn_scan_chrset(sc, chrset, &buf) > 0)
     printf("error\n");
-  if (scn_scan_chrset(sc, ",", NULL) > 0)
-    printf("scan \",\"\n");
+
+  if (scn_scan_chrset(sc, ", ", NULL) > 0)
+    printf("scan \", \"\n");
+  else
+    printf("error\n");
+
+  if (scn_scan_str(sc, "world", &buf, &buflen))
+    printf("scan %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
 
   scn_free(sc);
 

@@ -39,10 +39,12 @@ static inline _Bool scn_atend(scn_scanner *sc);
 static inline const char *scn_curptr(scn_scanner *sc);
 static inline _Bool scn_peek(scn_scanner *sc, size_t i, char *into);
 static inline _Bool scn_next(scn_scanner *sc, char *into);
-static inline _Bool scn_chrcmp(const char *chrset, char c);
 
 static inline _Bool scn_chrcmp(const char *chrset, char c);
 static inline _Bool scn_chrclscmp(const char *clsset, char c);
+
+static inline size_t scn_scan_chr(scn_scanner *sc, char c,
+    const char **into);
 static inline size_t scn_scan_chrset(scn_scanner *sc,
     const char *chrset, const char **into);
 static inline size_t scn_scan_chrclsset(scn_scanner *sc,
@@ -51,7 +53,13 @@ static inline size_t scn_scan_str(scn_scanner *sc, const char *s,
     const char **into);
 static inline size_t scn_scan_strn(scn_scanner *sc, const char *s,
     size_t len, const char **into);
+static inline size_t scn_scan_stri(scn_scanner *sc, const char *s,
+    const char **into);
+static inline size_t scn_scan_strin(scn_scanner *sc, const char *s,
+    size_t len, const char **into);
 
+static inline size_t scn_scan_upto_chr(scn_scanner *sc, char c,
+    const char **into);
 static inline size_t scn_scan_upto_chrset(scn_scanner *sc,
     const char *chrset, const char **into);
 static inline size_t scn_scan_upto_chrclsset(scn_scanner *sc,
@@ -59,6 +67,10 @@ static inline size_t scn_scan_upto_chrclsset(scn_scanner *sc,
 static inline size_t scn_scan_upto_str(scn_scanner *sc, const char *s,
     const char **into);
 static inline size_t scn_scan_upto_strn(scn_scanner *sc, const char *s,
+    size_t len, const char **into);
+static inline size_t scn_scan_upto_stri(scn_scanner *sc, const char *s,
+    const char **into);
+static inline size_t scn_scan_upto_strin(scn_scanner *sc, const char *s,
     size_t len, const char **into);
 
 static inline scn_scanner *

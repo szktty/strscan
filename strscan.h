@@ -52,14 +52,14 @@ static inline size_t scn_scan_str(scn_scanner *sc, const char *s,
 static inline size_t scn_scan_strn(scn_scanner *sc, const char *s,
     size_t len, const char **into);
 
-static inline _Bool scn_scan_upto_chrset(scn_scanner *sc,
-    const char *chrset, char **into, size_t *into_len);
-static inline size_t scn_scan_chrclsset(scn_scanner *sc,
+static inline size_t scn_scan_upto_chrset(scn_scanner *sc,
+    const char *chrset, const char **into);
+static inline size_t scn_scan_upto_chrclsset(scn_scanner *sc,
     const char *clsset, const char **into);
-static inline _Bool scn_scan_upto_str(scn_scanner *sc,
-    const char *s, char **into, size_t *into_len);
-static inline _Bool scn_scan_upto_strn(scn_scanner *sc,
-    const char *s, size_t len, char **into, size_t *into_len);
+static inline size_t scn_scan_upto_str(scn_scanner *sc, const char *s,
+    const char **into);
+static inline size_t scn_scan_upto_strn(scn_scanner *sc, const char *s,
+    size_t len, const char **into);
 
 static inline scn_scanner *
 scn_new(const char *s, size_t len)
@@ -360,6 +360,76 @@ scn_scan_strn(scn_scanner *sc, const char *s, size_t len, const char **into)
     *into = sc->s.cs + sc->pos;
   sc->pos += len;
   return len;
+}
+
+static inline size_t
+scn_scan_upto_chrset(scn_scanner *sc, const char *chrset,
+    const char **into)
+{
+  size_t rest, i;
+  char c;
+
+  i = 0;
+  while (scn_peek(sc, i, &c) && !scn_chrcmp(chrset, c))
+    i++;
+
+  if (i > 0) {
+    sc->pos += i;
+    return scn_scan_chrset(sc, chrset, into);
+  } else
+    return 0;
+}
+
+static inline size_t
+scn_scan_upto_chrclsset(scn_scanner *sc, const char *clsset,
+    const char **into)
+{
+  size_t i;
+  char c;
+
+  i = 0;
+  while (scn_peek(sc, i, &c) && !scn_chrclscmp(clsset, c))
+    i++;
+
+  if (i > 0) {
+    sc->pos += i;
+    return scn_scan_chrclsset(sc, clsset, into);
+  } else
+    return 0;
+}
+
+static inline size_t
+scn_scan_upto_str(scn_scanner *sc, const char *s, const char **into)
+{
+  return scn_scan_upto_strn(sc, s, strlen(s), into);
+}
+
+static inline size_t
+scn_scan_upto_strn(scn_scanner *sc, const char *s, size_t len,
+    const char **into)
+{
+  size_t i, j;
+  char c;
+
+  i = 0;
+  while (scn_peek(sc, i, &c)) {
+    if (c == *s) {
+      for (j = 1; j < len; j++) {
+        if (!(scn_peek(sc, i+j, &c) && c == s[j]))
+          goto not_match;
+      }
+
+      if (into != NULL)
+        *into = sc->s.cs + sc->pos;
+      sc->pos += i + len;
+      return len;
+
+not_match:
+      i += j;
+    } else
+      i++;
+  }
+
 }
 
 #endif /* STRSCAN_H */

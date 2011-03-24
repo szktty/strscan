@@ -78,6 +78,24 @@ main(int argc, char **argv)
   else
     printf("error\n");
 
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_upto_chrset(sc, "123", &buf)) > 0)
+    printf("scan upto chrset \"123\" -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_upto_chrclsset(sc, "d", &buf)) > 0)
+    printf("scan upto digit -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_upto_str(sc, "123", &buf)) > 0)
+    printf("scan upto str \"123\" -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
   scn_free(sc);
   return 0;
 }

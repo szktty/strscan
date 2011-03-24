@@ -57,7 +57,7 @@ main(int argc, char **argv)
     printf("error\n");
 
   if ((buflen = scn_scan_str(sc, "world", &buf)) > 0)
-    printf("scan %s (%lu)\n", buf);
+    printf("scan %s (%lu)\n", buf, buflen);
   else
     printf("error\n");
   scn_free(sc);

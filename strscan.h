@@ -41,33 +41,21 @@ static inline _Bool scn_peek(scn_scanner *sc, size_t i, char *into);
 static inline _Bool scn_next(scn_scanner *sc, char *into);
 static inline _Bool scn_chrcmp(const char *chrset, char c);
 
+static inline _Bool scn_chrcmp(const char *chrset, char c);
+static inline _Bool scn_chrclscmp(const char *clsset, char c);
 static inline size_t scn_scan_chrset(scn_scanner *sc,
-    const char *chrset, const char **into, size_t *into_len);
-static inline _Bool scn_scan_str(scn_scanner *sc, const char *s,
-    const char **into, size_t *into_len);
-static inline _Bool scn_scan_strn(scn_scanner *sc, const char *s,
-    size_t len, const char **into, size_t *into_len);
-static inline _Bool scn_scan_lowcases(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_upcases(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_alphas(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_alphanums(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_word(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_digits(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_spaces(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_crlf(scn_scanner *sc,
-    char **into, size_t *into_len);
-static inline _Bool scn_scan_hdr(scn_scanner *sc, const char *s,
-    char **into, size_t *into_len);
+    const char *chrset, const char **into);
+static inline size_t scn_scan_chrclsset(scn_scanner *sc,
+    const char *clsset, const char **into);
+static inline size_t scn_scan_str(scn_scanner *sc, const char *s,
+    const char **into);
+static inline size_t scn_scan_strn(scn_scanner *sc, const char *s,
+    size_t len, const char **into);
 
 static inline _Bool scn_scan_upto_chrset(scn_scanner *sc,
     const char *chrset, char **into, size_t *into_len);
+static inline size_t scn_scan_chrclsset(scn_scanner *sc,
+    const char *clsset, const char **into);
 static inline _Bool scn_scan_upto_str(scn_scanner *sc,
     const char *s, char **into, size_t *into_len);
 static inline _Bool scn_scan_upto_strn(scn_scanner *sc,
@@ -196,7 +184,7 @@ scn_chrcmp(const char *chrset, char c)
 
 static inline size_t
 scn_scan_chrset(scn_scanner *sc, const char *chrset,
-    const char **into, size_t *into_len)
+    const char **into)
 {
   size_t rest, i;
   char c;
@@ -215,40 +203,164 @@ scn_scan_chrset(scn_scanner *sc, const char *chrset,
 }
 
 static inline _Bool
-scn_scan_str(scn_scanner *sc, const char *s,
-    const char **into, size_t *into_len)
+scn_chrclscmp(const char *clsset, char c)
 {
-  return scn_scan_strn(sc, s, strlen(s), into, into_len);
+  char cls;
+
+  while ((cls = *clsset++) != '\0') {
+    switch (cls) {
+    case 'a':
+      /* alpha */
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))
+        return true;
+      break;
+
+    case 'A':
+      /* non alpha */
+      if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')))
+        return true;
+      break;
+
+    case 'd':
+      /* digit */
+      if ('0' <= c && c <= '9')
+        return true;
+      break;
+
+    case 'D':
+      /* non digit */
+      if (!('0' <= c && c <= '9'))
+        return true;
+      break;
+
+    case 'h':
+      /* alphanum + '-'  */
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+          ('0' <= c && c <= '9') || c == '-')
+        return true;
+      break;
+
+    case 'H':
+      /* non alphanum + non '-' */
+      if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+            ('0' <= c && c <= '9') || c == '-'))
+        return true;
+      break;
+
+    case 'l':
+      /* lower case */
+      if ('a' <= c && c <= 'z')
+        return true;
+      break;
+
+    case 'L':
+      /* non lower case */
+      if (!('a' <= c && c <= 'z'))
+        return true;
+      break;
+
+    case 'n':
+      /* alphanum */
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+          ('0' <= c && c <= '9'))
+        return true;
+      break;
+
+    case 'N':
+      /* non alphanum */
+      if (!(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+            ('0' <= c && c <= '9')))
+        return true;
+      break;
+
+    case 's':
+      /* spaces */
+      if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f')
+        return true;
+      break;
+
+    case 'S':
+      /* non spaces */
+      if (!(c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f'))
+        return true;
+      break;
+
+    case 'u':
+      /* upper case */
+      if ('A' <= c && c <= 'Z')
+        return true;
+      break;
+
+    case 'U':
+      /* non upper case */
+      if (!('A' <= c && c <= 'Z'))
+        return true;
+      break;
+
+    case 'w':
+      /* alphanum + '_'  */
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+          ('0' <= c && c <= '9') || c == '_')
+        return true;
+      break;
+
+    case 'W':
+      /* non alphanum + non '_'  */
+      if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+          ('0' <= c && c <= '9') || c == '_')
+        return true;
+      break;
+
+    default:
+      if (c == cls)
+        return true;
+      break;
+    }
+  }
+  return false;
 }
 
-static inline _Bool
-scn_scan_strn(scn_scanner *sc, const char *s, size_t len,
-    const char **into, size_t *into_len)
+static inline size_t
+scn_scan_chrclsset(scn_scanner *sc, const char *clsset, const char **into)
+{
+  size_t i;
+  char c;
+
+  i = 0;
+  while (scn_peek(sc, i, &c) && scn_chrclscmp(clsset, c))
+    i++;
+
+  if (i > 0) {
+    if (into != NULL)
+      *into = sc->s.cs + sc->pos;
+    sc->pos += i;
+    return i;
+  } else
+    return 0;
+}
+
+static inline size_t
+scn_scan_str(scn_scanner *sc, const char *s, const char **into)
+{
+  return scn_scan_strn(sc, s, strlen(s), into);
+}
+
+static inline size_t
+scn_scan_strn(scn_scanner *sc, const char *s, size_t len, const char **into)
 {
   size_t i;
   char c;
 
   for (i = 0; i < len; i++) {
     if (!(scn_peek(sc, i, &c) && c == s[i]))
-      return false;
+      return 0;
   }
 
   if (into != NULL)
     *into = sc->s.cs + sc->pos;
-  if (into_len != NULL)
-    *into_len = len;
   sc->pos += len;
-  return true;
+  return len;
 }
-
-/*
-static inline _Bool
-scn_scan_crlf(scn_scanner *sc)
-{
-  return scn_scan_str(sc, "\r\n", NULL);
-}
-
-*/
 
 #endif /* STRSCAN_H */
 

@@ -3,13 +3,14 @@
 int
 main(int argc, char **argv)
 {
-  static const char * const s = "hello, world!";
+  static const char * const s1 = "hello, world!";
+  static const char * const s2 = "lowerUPPERcamelCase123num";
   scn_scanner *sc;
   char c, match[100];
   const char *buf, *chrset;
   size_t buflen;
 
-  sc = scn_new(s, strlen(s));
+  sc = scn_new(s1, strlen(s1));
 
   /* current pointer */
   buf = scn_curptr(sc);
@@ -55,13 +56,29 @@ main(int argc, char **argv)
   else
     printf("error\n");
 
-  if (scn_scan_str(sc, "world", &buf, &buflen))
-    printf("scan %s (%lu)\n", buf, buflen);
+  if ((buflen = scn_scan_str(sc, "world", &buf)) > 0)
+    printf("scan %s (%lu)\n", buf);
+  else
+    printf("error\n");
+  scn_free(sc);
+
+  sc = scn_new(s2, strlen(s2));
+  if ((buflen = scn_scan_chrclsset(sc, "l", &buf)) > 0)
+    printf("scan lowcases -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  if ((buflen = scn_scan_chrclsset(sc, "u", &buf)) > 0)
+    printf("scan upcases -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  if ((buflen = scn_scan_chrclsset(sc, "a", &buf)) > 0)
+    printf("scan alphas -> %s (%lu)\n", buf, buflen);
   else
     printf("error\n");
 
   scn_free(sc);
-
   return 0;
 }
 

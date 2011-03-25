@@ -433,7 +433,7 @@ scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
   char pc;
 
   i = 0;
-  while (scn_peek(sc, i, &c) && pc != c)
+  while (scn_peek(sc, i, &pc) && pc != c)
     i++;
 
   if (i > 0) {

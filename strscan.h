@@ -470,15 +470,15 @@ scn_scan_upto_strn(scn_scanner *sc, const char *s, size_t len,
 
       if (into != NULL)
         *into = sc->s.cs + sc->pos;
-      sc->pos += i + len;
-      return len;
+      sc->pos += i;
+      return i;
 
 not_match:
       i += j;
     } else
       i++;
   }
-
+  return 0;
 }
 
 #endif /* STRSCAN_H */

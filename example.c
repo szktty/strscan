@@ -113,6 +113,8 @@ main(int argc, char **argv)
     printf("scan upto str \"123\" -> %s (%lu)\n", buf, buflen);
   else
     printf("error\n");
+  scn_peek(sc, 0, &c);
+  printf("peek %c\n", c);
 
   scn_free(sc);
   return 0;

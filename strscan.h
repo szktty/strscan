@@ -443,8 +443,10 @@ scn_scan_upto_chrclsset(scn_scanner *sc, const char *clsset,
     i++;
 
   if (i > 0) {
+    if (into != NULL)
+      *into = sc->s.cs + sc->pos;
     sc->pos += i;
-    return scn_scan_chrclsset(sc, clsset, into);
+    return i;
   } else
     return 0;
 }

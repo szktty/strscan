@@ -58,19 +58,19 @@ static inline size_t scn_scan_stri(scn_scanner *sc, const char *s,
 static inline size_t scn_scan_strin(scn_scanner *sc, const char *s,
     size_t len, const char **into);
 
-static inline size_t scn_scan_upto_chr(scn_scanner *sc, char c,
+static inline ssize_t scn_scan_upto_chr(scn_scanner *sc, char c,
     const char **into);
-static inline size_t scn_scan_upto_chrset(scn_scanner *sc,
+static inline ssize_t scn_scan_upto_chrset(scn_scanner *sc,
     const char *chrset, const char **into);
-static inline size_t scn_scan_upto_chrclsset(scn_scanner *sc,
+static inline ssize_t scn_scan_upto_chrclsset(scn_scanner *sc,
     const char *clsset, const char **into);
-static inline size_t scn_scan_upto_str(scn_scanner *sc, const char *s,
+static inline ssize_t scn_scan_upto_str(scn_scanner *sc, const char *s,
     const char **into);
-static inline size_t scn_scan_upto_strn(scn_scanner *sc, const char *s,
+static inline ssize_t scn_scan_upto_strn(scn_scanner *sc, const char *s,
     size_t len, const char **into);
-static inline size_t scn_scan_upto_stri(scn_scanner *sc, const char *s,
+static inline ssize_t scn_scan_upto_stri(scn_scanner *sc, const char *s,
     const char **into);
-static inline size_t scn_scan_upto_strin(scn_scanner *sc, const char *s,
+static inline ssize_t scn_scan_upto_strin(scn_scanner *sc, const char *s,
     size_t len, const char **into);
 
 static inline scn_scanner *
@@ -426,7 +426,7 @@ scn_scan_strin(scn_scanner *sc, const char *s, size_t len, const char **into)
   return len;
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
 {
   size_t rest, i;
@@ -442,10 +442,10 @@ scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
     sc->pos += i;
     return i;
   } else
-    return 0;
+    return -1;
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_chrset(scn_scanner *sc, const char *chrset,
     const char **into)
 {
@@ -462,10 +462,10 @@ scn_scan_upto_chrset(scn_scanner *sc, const char *chrset,
     sc->pos += i;
     return i;
   } else
-    return 0;
+    return -1;
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_chrclsset(scn_scanner *sc, const char *clsset,
     const char **into)
 {
@@ -482,16 +482,16 @@ scn_scan_upto_chrclsset(scn_scanner *sc, const char *clsset,
     sc->pos += i;
     return i;
   } else
-    return 0;
+    return -1;
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_str(scn_scanner *sc, const char *s, const char **into)
 {
   return scn_scan_upto_strn(sc, s, strlen(s), into);
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_strn(scn_scanner *sc, const char *s, size_t len,
     const char **into)
 {
@@ -516,16 +516,16 @@ not_match:
     } else
       i++;
   }
-  return 0;
+  return -1;
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_stri(scn_scanner *sc, const char *s, const char **into)
 {
   return scn_scan_upto_strin(sc, s, strlen(s), into);
 }
 
-static inline size_t
+static inline ssize_t
 scn_scan_upto_strin(scn_scanner *sc, const char *s, size_t len,
     const char **into)
 {
@@ -550,7 +550,7 @@ not_match:
     } else
       i++;
   }
-  return 0;
+  return -1;
 }
 
 #endif /* STRSCAN_H */

@@ -42,6 +42,7 @@ static inline _Bool scn_next(scn_scanner *sc, char *into);
 
 static inline _Bool scn_chrcmp(const char *chrset, char c);
 static inline _Bool scn_chrclscmp(const char *clsset, char c);
+static inline _Bool scn_chrieq(char c1, char c2);
 
 static inline size_t scn_scan_chr(scn_scanner *sc, char c, const char **into);
 static inline size_t scn_scan_chrset(scn_scanner *sc,
@@ -393,6 +394,39 @@ scn_scan_strn(scn_scanner *sc, const char *s, size_t len, const char **into)
 }
 
 static inline size_t
+scn_scan_stri(scn_scanner *sc, const char *s, const char **into)
+{
+  return scn_scan_strin(sc, s, strlen(s), into);
+}
+
+static inline _Bool
+scn_chrieq(char c1, char c2)
+{
+  return c1 == c2 ||
+    ('a' <= c1 && c1 <= 'z' && 'A' <= c2 && c2 <= 'Z' &&
+     c1 == c2 + 32) ||
+    ('A' <= c1 && c1 <= 'Z' && 'a' <= c2 && c2 <= 'z' &&
+     c1 == c2 - 32);
+}
+
+static inline size_t
+scn_scan_strin(scn_scanner *sc, const char *s, size_t len, const char **into)
+{
+  size_t i;
+  char c;
+
+  for (i = 0; i < len; i++) {
+    if (!(scn_peek(sc, i, &c) && scn_chrieq(c, s[i])))
+      return 0;
+  }
+
+  if (into != NULL)
+    *into = sc->s.cs + sc->pos;
+  sc->pos += len;
+  return len;
+}
+
+static inline size_t
 scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
 {
   size_t rest, i;
@@ -469,6 +503,40 @@ scn_scan_upto_strn(scn_scanner *sc, const char *s, size_t len,
     if (c == *s) {
       for (j = 1; j < len; j++) {
         if (!(scn_peek(sc, i+j, &c) && c == s[j]))
+          goto not_match;
+      }
+
+      if (into != NULL)
+        *into = sc->s.cs + sc->pos;
+      sc->pos += i;
+      return i;
+
+not_match:
+      i += j;
+    } else
+      i++;
+  }
+  return 0;
+}
+
+static inline size_t
+scn_scan_upto_stri(scn_scanner *sc, const char *s, const char **into)
+{
+  return scn_scan_upto_strin(sc, s, strlen(s), into);
+}
+
+static inline size_t
+scn_scan_upto_strin(scn_scanner *sc, const char *s, size_t len,
+    const char **into)
+{
+  size_t i, j;
+  char c;
+
+  i = 0;
+  while (scn_peek(sc, i, &c)) {
+    if (c == *s) {
+      for (j = 1; j < len; j++) {
+        if (!(scn_peek(sc, i+j, &c) && scn_chrieq(c, s[j])))
           goto not_match;
       }
 

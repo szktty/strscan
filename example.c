@@ -116,6 +116,24 @@ main(int argc, char **argv)
   scn_peek(sc, 0, &c);
   printf("peek %c\n", c);
 
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_stri(sc, "LOwER", &buf)) > 0)
+    printf("scan upto stri \"LOWER\" -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_stri(sc, "LOwER", &buf)) > 0)
+    printf("scan stri \"LOWER\" -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
+  scn_set_pos(sc, 0);
+  if ((buflen = scn_scan_upto_stri(sc, "CASE", &buf)) > 0)
+    printf("scan upto stri \"CASE\" -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
+
   scn_free(sc);
   return 0;
 }

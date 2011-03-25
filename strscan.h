@@ -423,8 +423,10 @@ scn_scan_upto_chrset(scn_scanner *sc, const char *chrset,
     i++;
 
   if (i > 0) {
+    if (into != NULL)
+      *into = sc->s.cs + sc->pos;
     sc->pos += i;
-    return scn_scan_chrset(sc, chrset, into);
+    return i;
   } else
     return 0;
 }

@@ -43,8 +43,7 @@ static inline _Bool scn_next(scn_scanner *sc, char *into);
 static inline _Bool scn_chrcmp(const char *chrset, char c);
 static inline _Bool scn_chrclscmp(const char *clsset, char c);
 
-static inline size_t scn_scan_chr(scn_scanner *sc, char c,
-    const char **into);
+static inline _Bool scn_scan_chr(scn_scanner *sc, char c);
 static inline size_t scn_scan_chrset(scn_scanner *sc,
     const char *chrset, const char **into);
 static inline size_t scn_scan_chrclsset(scn_scanner *sc,
@@ -192,6 +191,18 @@ scn_chrcmp(const char *chrset, char c)
      return true;
   }
   return false;
+}
+
+static inline _Bool
+scn_scan_chr(scn_scanner *sc, char c)
+{
+  char p;
+
+  if (scn_peek(sc, 0, &p) && p == c) {
+    sc->pos += 1;
+    return true;
+  } else
+    return false;
 }
 
 static inline size_t

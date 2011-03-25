@@ -38,6 +38,18 @@ main(int argc, char **argv)
   scn_next(sc, &c);
   printf("next -> %c\n", c);
 
+  /* scan char */
+  if (scn_scan_chr(sc, ','))
+    printf("scan comma\n");
+  else
+    printf("error\n");
+
+  /* no match */
+  if (scn_scan_chr(sc, ","))
+    printf("error\n");
+  scn_peek(sc, 0, &c);
+  printf("peek 0 -> %c\n", c);
+
   /* clear position */
   scn_set_pos(sc, 0);
   printf("pos = 0\n");

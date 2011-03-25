@@ -39,16 +39,22 @@ main(int argc, char **argv)
   printf("next -> %c\n", c);
 
   /* scan char */
-  if (scn_scan_chr(sc, ','))
-    printf("scan comma\n");
+  if (buflen = scn_scan_chr(sc, ',', &buf))
+    printf("scan comma (%lu)\n", buflen);
   else
     printf("error\n");
 
   /* no match */
-  if (scn_scan_chr(sc, ","))
+  if (scn_scan_chr(sc, ',', &buf))
     printf("error\n");
   scn_peek(sc, 0, &c);
   printf("peek 0 -> %c\n", c);
+
+  /* scan upto char */
+  if (buflen = scn_scan_upto_chr(sc, '!', &buf))
+    printf("scan upto '!' -> %s (%lu)\n", buf, buflen);
+  else
+    printf("error\n");
 
   /* clear position */
   scn_set_pos(sc, 0);

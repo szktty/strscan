@@ -43,7 +43,7 @@ static inline _Bool scn_next(scn_scanner *sc, char *into);
 static inline _Bool scn_chrcmp(const char *chrset, char c);
 static inline _Bool scn_chrclscmp(const char *clsset, char c);
 
-static inline _Bool scn_scan_chr(scn_scanner *sc, char c);
+static inline size_t scn_scan_chr(scn_scanner *sc, char c, const char **into);
 static inline size_t scn_scan_chrset(scn_scanner *sc,
     const char *chrset, const char **into);
 static inline size_t scn_scan_chrclsset(scn_scanner *sc,
@@ -193,23 +193,30 @@ scn_chrcmp(const char *chrset, char c)
   return false;
 }
 
-static inline _Bool
-scn_scan_chr(scn_scanner *sc, char c)
+static inline size_t
+scn_scan_chr(scn_scanner *sc, char c, const char **into)
 {
-  char p;
+  size_t i;
+  char pc;
 
-  if (scn_peek(sc, 0, &p) && p == c) {
-    sc->pos += 1;
-    return true;
+  i = 0;
+  while (scn_peek(sc, i, &pc) && pc == c)
+    i++;
+
+  if (i > 0) {
+    if (into != NULL)
+      *into = sc->s.cs + sc->pos;
+    sc->pos += i;
+    return i;
   } else
-    return false;
+    return 0;
 }
 
 static inline size_t
 scn_scan_chrset(scn_scanner *sc, const char *chrset,
     const char **into)
 {
-  size_t rest, i;
+  size_t i;
   char c;
 
   i = 0;
@@ -383,6 +390,25 @@ scn_scan_strn(scn_scanner *sc, const char *s, size_t len, const char **into)
     *into = sc->s.cs + sc->pos;
   sc->pos += len;
   return len;
+}
+
+static inline size_t
+scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
+{
+  size_t rest, i;
+  char pc;
+
+  i = 0;
+  while (scn_peek(sc, i, &c) && pc != c)
+    i++;
+
+  if (i > 0) {
+    if (into != NULL)
+      *into = sc->s.cs + sc->pos;
+    sc->pos += i;
+    return i;
+  } else
+    return 0;
 }
 
 static inline size_t

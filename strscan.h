@@ -59,6 +59,9 @@ static inline void scn_forward(scn_scanner *sc, size_t len);
 static inline _Bool scn_atend(scn_scanner *sc);
 
 static inline const char *scn_curptr(scn_scanner *sc);
+static inline size_t scn_restlen(scn_scanner *sc);
+static inline void scn_strncpy(char *dest, const char *src, size_t len);
+
 static inline _Bool scn_peek(scn_scanner *sc, size_t i, char *into);
 static inline _Bool scn_next(scn_scanner *sc, char *into);
 
@@ -182,6 +185,19 @@ static inline const char *
 scn_curptr(scn_scanner *sc)
 {
   return sc->s.cs + sc->pos;
+}
+
+static inline size_t
+scn_restlen(scn_scanner *sc)
+{
+  return sc->len - sc->pos;
+}
+
+static inline void
+scn_strncpy(char *dest, const char *src, size_t len)
+{
+  strncpy(dest, src, len);
+  dest[len] = '\0';
 }
 
 static inline _Bool

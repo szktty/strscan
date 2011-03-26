@@ -467,7 +467,7 @@ scn_scan_strin(scn_scanner *sc, const char *s, size_t len, const char **into)
 static inline ssize_t
 scn_scan_upto_chr(scn_scanner *sc, char c, const char **into)
 {
-  size_t rest, i;
+  size_t i;
   char pc;
 
   i = 0;
@@ -487,7 +487,7 @@ static inline ssize_t
 scn_scan_upto_chrset(scn_scanner *sc, const char *chrset,
     const char **into)
 {
-  size_t rest, i;
+  size_t i;
   char c;
 
   i = 0;

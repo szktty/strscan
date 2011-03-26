@@ -1,3 +1,3 @@
 all:
-	$(CC) -o example example.c
+	$(CC) -o example -Wall example.c
 
